@@ -266,5 +266,14 @@ if uploaded_file is not None:
     dataframe = pd.read_csv(uploaded_file)
     st.markdown(dataframe)
 
-## 
-
+## Show grade distribution and pass fail statistics:
+## showing pass fail to the students:
+pf_std = [
+      df['Grade'] == 'A',
+      df['Grade'] == 'B',
+      df['Grade'] == 'C',
+      df['Grade'] == 'D'
+]
+proOfstd = ['Escellent','V Good','Good','Average']
+df['Progress'] = np.select(pf_std,proOfstd,default='not marked')
+st.dataframe(df)
