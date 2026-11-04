@@ -37,3 +37,7 @@ print(df[df[subjects].isna().any()])
 ## For duplicated Id:
 print(df[df['Student_ID'].duplicated(keep =False)]) ## it returns atleast one true if present otherwise false:
 ## For Invalid values:
+## check for invalid marks:
+invalid_marks = df[((df[subjects]<0) | (df[subjects]>100)).any(axis = 1)]
+invalid_id = df[(df['Student_ID']<=0)]
+invalid_name = df[(df['Name'].isna() |~ df['Name'].astype('string').str.strip().str.replace(' ','',regex=False).str.isalpha().fillna(False))]

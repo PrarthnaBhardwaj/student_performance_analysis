@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from visualization import student_graph
+from io import StringIO
 # Configure the dashboard
 st.set_page_config(
     page_title="Student Performance Dashboard",
@@ -163,7 +164,7 @@ st.pyplot(fig)
 ## Making a table for students who need academic supporyt:
 at_risk = df[
    (df['Average']<50) |
-        (df['Attendance']<75)
+        (df['Attendance']<80)
 ]
 
 print("\nStudents needing academic support:")
@@ -172,3 +173,98 @@ print(at_risk[['Name','Average','Attendance']])
 ## Highlight the students who need academic support:
 st.subheader('Students Who need Academic Support:')
 st.dataframe(at_risk,width='stretch')
+## Checking for invalid inputs:
+invalid_marks = df[((df[subjects]<0) | (df[subjects]>100)).any(axis = 1)]
+invalid_id = df[(df['Student_ID']<=0)]
+invalid_name = df[(df['Name'].isna() |~ df['Name'].astype('string').str.strip().str.replace(' ','',regex=False).str.isalpha().fillna(False))]
+st.subheader("Invalid Names:")
+st.dataframe(invalid_name)
+st.subheader("Invalid Student_Id:")
+st.dataframe(invalid_id)
+st.subheader("Invalid Marks:")
+st.dataframe(invalid_marks)
+
+
+## Showing the required columns to user:
+st.subheader("Your required column:")
+req_col=df.columns.tolist()
+## displays col name to user:
+st.markdown(req_col)
+## print this to console
+print(req_col)
+
+## Download filtered student records and analysis reports
+    ## a:  Filter students by studey_hours,marks,attandace:
+## filtered student records
+st.subheader("students filter record:")
+filter_data = df[(df[subjects]<75).any(axis = 1) | (df['Attendance']<80) | ( df['Study_Hours']<3)]
+st.dataframe(filter_data,width='stretch')
+
+## ANALYSIS REPORT:
+## a; General Report:
+total_students = len(df.index)
+maths_avg = df['Maths'].mean(axis = 0)
+python_avg = df['Python'].mean(axis = 0)
+dbms_avg = df['DBMS'].mean(axis = 0)
+attendance_avg = df['Attendance'].mean(axis = 0)
+## student performance analysis:
+max_avg = df['Average'].max()
+low_att = df['Attendance'].min()
+high_att = df['Attendance'].max()
+min_avg = df['Average'].min()
+ 
+ ## Compare performance across diff subjects:
+py_max = df['Python'].max(axis = 0)
+maths_max = df['Maths'].max(axis = 0)
+dbms_max = df['DBMS'].max(axis = 0)
+
+## Attendance and Study hours analysis:
+low_att_no = (df['Attendance']<80).sum()
+low_hour_no = (df['Study_Hours']<2).sum()
+## at_risk : student need academic support:
+
+st.subheader("Analysis Report:")
+class_report = {
+    'Total students': total_students,
+    'Maths Average': maths_avg,
+    'Python average': python_avg,
+    'DBMS average': dbms_avg,
+    'Attendance average': attendance_avg,
+    'Maximum average': max_avg,
+    'Minimum average': min_avg,
+    'Low Attendance': low_att,
+    'Highest Attendance': high_att,
+    'Max python': py_max,
+    'Max Maths': maths_max,
+    'Max DBMS': dbms_max,
+    'low Attendance count': low_att_no,
+    'low study-hours count': low_hour_no
+}
+report = pd.DataFrame([class_report])
+st.dataframe(report,width='stretch')
+
+## Adding the Download button:
+def convert_for_download(df):
+    return df.to_csv().encode("utf-8")
+csv = convert_for_download(filter_data)
+st.download_button(
+    label="Download filter record:",
+    data=csv,
+    file_name="filter record.csv",
+    mime="txt/csv",
+)
+text = convert_for_download(report)
+st.download_button(
+     label= "Download analysis report",
+     data = text,
+     file_name = "analysis report.csv",
+     mime = "txt/csv", 
+  ) 
+## Someone's Else wants to upload their csv file:
+uploaded_file = st.file_uploader("Choose a file",type = ["csv"])
+if uploaded_file is not None:
+    dataframe = pd.read_csv(uploaded_file)
+    st.markdown(dataframe)
+
+## 
+
